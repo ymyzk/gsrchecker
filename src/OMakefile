@@ -96,10 +96,11 @@ OCamlGeneratedFiles(lexer.ml parser.ml parser.mli)
 FILES[] =
 #    lexer
 #    parser
+    checker
     environment
+    main
     syntax
     typing
-    main
 
 LIB = target
 
