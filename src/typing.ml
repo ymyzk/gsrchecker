@@ -13,12 +13,12 @@ let sprint_type ty =
       | TyBool -> "bool"
       | TyInt -> "int")
     | TyFun (w, x, y, z) ->
-        "(" ^ (sprint_type w) ^ "/" ^ (sprint_type x) ^ "->" ^
+        "(" ^ (sprint_type w) ^ "/" ^ (sprint_type x) ^ " \\rightarrow " ^
         (sprint_type y) ^ "/" ^ (sprint_type z) ^ ")"
     | TyDyn -> "?"
   in
   match ty with
   | TyFun (w, x, y, z) ->
-      (sprint_type w) ^ "/" ^ (sprint_type x) ^ "->" ^
+      (sprint_type w) ^ "/" ^ (sprint_type x) ^ " \\rightarrow " ^
       (sprint_type y) ^ "/" ^ (sprint_type z)
   | _ -> sprint_type ty

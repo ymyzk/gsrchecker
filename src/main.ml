@@ -1,60 +1,62 @@
+open Checker
 open Environment
 open Syntax
 open Typing
 
-let rec check env e b = match e with
-  | Var (x) -> (b, TyDyn)
-  | Fun (fb, fx, ft1, fe) ->
-      let env' = Environment.add fx ft1 env in
-      let a, t2 = check env' e b in
-      (b, TyFun (ft1, a, t2, fb))
-  | Sft (k, TyFun (t, d, a, d'), e) when d = d' ->
-      let env' = Environment.add k (TyFun (t, d, a, d')) env in
-      let g', g = check env' e, b in
-      (* check consistency *)
-      ignore g;
-      (a, t)
-  | _ -> (TyDyn, TyDyn)
-
 let print (env, a, e, t, b) =
-  let rec sprint_type = function
-    | TyBase (TyBool) -> "bool"
-    | TyBase (TyInt) -> "int"
-    | TyFun (w, x, y, z) ->
-        (sprint_type w) ^ "/" ^ (sprint_type x) ^ "->" ^
-        (sprint_type y) ^ "/" ^ (sprint_type z)
-    | TyDyn -> "?"
-  in
-  let sprint_env env =
-    let bindings = Environment.bindings env in
-    String.concat ", " @@
-      List.map (fun (id, ty) -> id ^ ":" ^ sprint_type ty) bindings
-  in
-  let rec sprint_exp = function
-    | Var (x) -> x
-    | Fun (b, x, t, e) ->
-        "λ(" ^ sprint_type b ^ ")" ^
-        x ^ ":" ^ sprint_type t ^ "." ^
-        sprint_exp e
-    | App (e1, e2) ->
-        sprint_exp e1 ^ " " ^ sprint_exp e2
-    | Sft (k, t, e) ->
-        "S" ^ k ^ ":" ^ sprint_type t ^ "." ^ sprint_exp e
-    | Rst (e, t) ->
-        "<" ^ sprint_exp e ^ ">^" ^ sprint_type t
-  in
-  print_endline "OK";
-  print_endline @@ "Gamma: " ^ sprint_env env;
-  print_endline @@ "e: " ^ sprint_exp e;
-  print_endline @@ "alpha: " ^ sprint_type a;
-  print_endline @@ "tau: " ^ sprint_type t;
-  print_endline @@ "beta: " ^ sprint_type b
+  print_string @@ sprint_type_environment env;
+  print_string "; ";
+  print_string @@ sprint_type a;
+  print_string " \\vdash_{s/r}^? ";
+  print_string @@ sprint_exp e;
+  print_string ":";
+  print_string @@ sprint_type t;
+  print_string "; ";
+  print_string @@ sprint_type b;
+  print_endline ""
 
-let () =
-(*   let x = fresh_var () in *)
-  let x = "x" in
-  let env = Environment.singleton x (TyBase TyInt) in
-  let e = Var x in
-  let b = TyBase TyInt in
+let check_and_print env e b =
   let a, t = check env e b in
   ignore @@ print (env, a, e, t, b)
+
+let tybool = TyBase TyBool
+let tyint = TyBase TyInt
+
+let cases = [
+  begin
+    fun () ->
+    (* x: int *)
+    let env = Environment.singleton "x" (TyBase TyInt) in
+    check_and_print env (Var "x") tyint
+  end;
+  begin
+    fun () ->
+    (* <x>^int *)
+    let env = Environment.singleton "x" (TyBase TyInt) in
+    let e = Rst (Var "x", tyint) in
+    check_and_print env e tyint
+  end;
+  begin
+    fun () ->
+    (* <Sk:?.x>^int *)
+    let env = Environment.singleton "x" (TyBase TyInt) in
+    let e = Rst (Sft ("k", TyFun(TyDyn, TyDyn, TyDyn, TyDyn), Var "x"), tyint) in
+    check_and_print env e tyint
+  end;
+  begin
+    fun () ->
+    (* <Sk:int/int->int/int.x>^int *)
+    let env = Environment.singleton "x" (TyBase TyInt) in
+    let e = Rst (Sft ("k", TyFun(tyint, tyint, tyint, tyint), Var "x"), tyint) in
+    check_and_print env e tyint
+  end;
+  begin
+    fun () ->
+    (* <Sk:?.\x:int.x>^int *)
+    let env = Environment.empty in
+    let e = Rst (Sft ("k", TyFun(TyDyn, TyDyn, TyDyn, TyDyn), Fun (tyint, "x", tyint, Var "x")), TyFun(tyint, TyDyn, tyint, TyDyn)) in
+    check_and_print env e tyint
+  end;
+]
+
+let () = List.iter (fun case -> case (); print_endline "\\\\") cases
