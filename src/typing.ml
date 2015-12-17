@@ -22,11 +22,3 @@ let sprint_type ty =
       (sprint_type w) ^ "/" ^ (sprint_type x) ^ "->" ^
       (sprint_type y) ^ "/" ^ (sprint_type z)
   | _ -> sprint_type ty
-
-let fresh_var =
-  let counter = ref 0 in
-  let body () =
-    let v = !counter in
-      counter := v + 1;
-      v
-  in body
