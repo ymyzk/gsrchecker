@@ -1,6 +1,8 @@
 open OUnit2
 
 open Checker
+open Environment
+open Syntax
 open Typing
 
 let test_check_consistency =
@@ -31,6 +33,103 @@ let test_check_consistency =
       title >:: (fun test_ctxt -> assert_equal r @@ check_consistency s t))
     check_list
 
+let test_check_suite () =
+  let tyint = TyBase TyInt in
+  let tybool = TyBase TyBool in
+  [
+  "GTVar int">:: begin
+    fun test_ctxt ->
+      let env = Environment.singleton "x" tyint in
+      let x = Var "x" in
+      let b = tyint in
+      assert_equal (tyint, tyint) @@ check env x b
+  end;
+  "GTVar not exists">:: begin
+    fun test_ctxt ->
+      let env = Environment.empty in
+      let x = Var "x" in
+      let b = TyBase TyInt in
+      assert_raises
+        (Type_error "'x' is not found in the environment")
+        (fun () -> check env x b)
+  end;
+  "GTFun int/bool->int/bool">:: begin
+    fun test_ctxt ->
+      let env = Environment.empty in
+      let x = Var "x" in
+      let e = Fun (tybool, "x", tyint, x) in
+      let expects = (TyDyn, TyFun (tyint, tybool, tyint, tybool)) in
+      assert_equal expects @@ check env e TyDyn
+  end;
+  "GTFun ?/int->?/int">:: begin
+    fun test_ctxt ->
+      let env = Environment.empty in
+      let x = Var "x" in
+      let e = Fun (tyint, "x", TyDyn, x) in
+      let expects = (tybool, TyFun (TyDyn, tyint, TyDyn, tyint)) in
+      assert_equal expects @@ check env e tybool
+  end;
+  "GTApp fail">:: begin
+    fun test_ctxt ->
+      let env = Environment.singleton "x" tyint in
+      let env = Environment.add "y" tyint env in
+      let e = App (Var "x", Var "y") in
+      assert_raises
+        (Type_error "invalid application")
+        (fun () -> check env e tybool)
+  end;
+  "GTApp1">:: begin
+    fun test_ctxt ->
+      let env = Environment.singleton "df" TyDyn in
+      let env = Environment.add "x" tyint env in
+      let e = App (Var "df", Var "x") in
+      let expects = (TyDyn, TyDyn) in
+      assert_equal expects @@ check env e tybool
+  end;
+  "GTApp2 1">:: begin
+    fun test_ctxt ->
+      let env = Environment.singleton "f" (TyFun (tyint, tybool, tyint, tyint)) in
+      let env = Environment.add "x" tyint env in
+      let e = App (Var "f", Var "x") in
+      let expects = (tybool, tyint) in
+      assert_equal expects @@ check env e tyint
+  end;
+  "GTApp2 2">:: begin
+    fun test_ctxt ->
+      let env = Environment.singleton "f" (TyFun (tyint, tybool, tyint, tyint)) in
+      let env = Environment.add "x" tyint env in
+      let e = App (Var "f", Var "x") in
+      let expects = (tybool, tyint) in
+      assert_equal expects @@ check env e TyDyn
+  end;
+  "GTApp2 beta is not consistent">:: begin
+    fun test_ctxt ->
+      let env = Environment.singleton "f" (TyFun (tyint, tybool, tyint, tyint)) in
+      let env = Environment.add "x" tyint env in
+      let e = App (Var "f", Var "x") in
+      assert_raises
+        (Type_error "inconsistent")
+        (fun () -> check env e tybool)
+  end;
+  "GTShift invalid continuation type">:: begin
+    fun test_ctxt ->
+      let env = Environment.singleton "x" tyint in
+      let e = Sft ("k", tyint, Var "x") in
+      assert_raises
+        (Type_error "invalid expression")
+        (fun () -> check env e tyint)
+  end;
+  "GTReset">:: begin
+    fun test_ctxt ->
+      let env = Environment.singleton "x" tyint in
+      let x = Var "x" in
+      let e = Rst (x, tyint) in
+      let expects = (tybool, tyint) in
+      assert_equal expects @@ check env e tybool
+  end;
+]
+
 let suite = [
-  "test_check_consistency">::: test_check_consistency
+  "test_check_consistency">::: test_check_consistency;
+  "test_check">::: test_check_suite ();
 ]
