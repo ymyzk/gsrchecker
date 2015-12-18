@@ -2,6 +2,7 @@ open OUnit2
 
 open Checker
 open Environment
+open Printer
 open Syntax
 open Typing
 

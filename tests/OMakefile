@@ -93,6 +93,7 @@ BYTE_ENABLED = $(not $(OCAMLOPT_EXISTS))
 FILES[] =
     test
     checker_test
+    printer_test
     typing_test
 
 PROGRAM = test

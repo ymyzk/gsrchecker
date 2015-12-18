@@ -99,6 +99,7 @@ FILES[] =
     checker
     environment
     main
+    printer
     syntax
     typing
 
