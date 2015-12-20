@@ -1,6 +1,7 @@
 # A Type Checker for GTLC + shift/reset
 
 [![Build Status](https://travis-ci.org/ymyzk/gsrchecker.svg?branch=master)](https://travis-ci.org/ymyzk/gsrchecker)
+[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.35567.svg)](http://dx.doi.org/10.5281/zenodo.35567)
 
 A type checker for Gradually-Typed Lambda Calculus with shift/reset.
 
