@@ -18,7 +18,7 @@ A type checker for Gradually-Typed Lambda Calculus with shift/reset.
 ### Run
 - `./src/main`
 
-#### Customize
+#### Notes
 Current implementation **DOES NOT** includes a parser.
 If you want to check other terms, please follow the instructions below:
 
