@@ -48,3 +48,17 @@ let sprint_exp ?(mode=PrintText) e =
         sprintf "<%s>^{%s}" (sprint_exp e) (sprint_type t)
   in
   sprint_exp e
+
+let print_typing ?(mode=PrintText) env a e t b r =
+  print_string @@ sprint_type_environment env;
+  print_string "; ";
+  print_string @@ sprint_type a;
+  print_string " |- ";
+  print_string @@ sprint_exp e;
+  print_string ": ";
+  print_string @@ sprint_type t;
+  print_string "; ";
+  print_string @@ sprint_type b;
+  print_string " (";
+  print_string r;
+  print_endline ")"

@@ -23,23 +23,9 @@ let rec check_consistency s t = match s, t with
 let check ?(mode=CheckSilent) env e b =
   let rec check env e b =
     let open Printer in
-    let print env a e t b r =
-      match mode with
-      | CheckSilent -> ()
-      | CheckText -> begin
-          print_string @@ sprint_type_environment env;
-          print_string "; ";
-          print_string @@ sprint_type a;
-          print_string " |- ";
-          print_string @@ sprint_exp e;
-          print_string ": ";
-          print_string @@ sprint_type t;
-          print_string "; ";
-          print_string @@ sprint_type b;
-          print_string " (";
-          print_string r;
-          print_endline ")"
-        end
+    let print = match mode with
+    | CheckSilent -> fun _ _ _ _ _ _ -> ()
+    | CheckText -> fun env a e t v r -> print_typing env a e t b r
     in
     match e with
     | Var (x) -> begin

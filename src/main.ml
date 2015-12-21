@@ -5,11 +5,21 @@ open Syntax
 open Typing
 
 let check_and_print env e b =
-  try
-    ignore @@ check ~mode:CheckText env e b;
-    print_endline "OK";
-  with
-    Type_error e -> print_endline @@ "NG: " ^ e
+  print_endline "Input: ";
+  print_endline @@ "  Γ: " ^ sprint_type_environment env;
+  print_endline @@ "  e: " ^ sprint_exp e;
+  print_endline @@ "  β: " ^ sprint_type b;
+  print_endline "Check: ";
+  begin
+    try
+      let a, t = check ~mode:CheckText env e b in
+      print_endline "OK:";
+      print_endline @@ "  α: " ^ sprint_type a;
+      print_endline @@ "  τ: " ^ sprint_type t
+    with
+      Type_error e -> print_endline @@ "NG: " ^ e
+  end;
+  print_endline "-----"
 
 let tybool = TyBase TyBool
 let tyint = TyBase TyInt
