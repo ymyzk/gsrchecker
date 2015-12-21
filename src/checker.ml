@@ -37,6 +37,21 @@ let check ?(mode=CheckSilent) env e b =
         with
           Not_found -> raise (Type_error "'x' is not found in the environment")
       end
+    | Cst (c) -> begin
+        match c with
+        | CstInt (_) -> begin
+            let a = b in
+            let t = TyBase TyInt in
+            print env a e t b "GTConst";
+            (a, t)
+          end
+        | CstBool (_) -> begin
+            let a = b in
+            let t = TyBase TyBool in
+            print env a e t b "GTConst";
+            (a, t)
+          end
+      end
     | Fun (fb, fx, ft1, fe) ->
         let env' = Environment.add fx ft1 env in
         let a2, t2 = check env' fe fb in

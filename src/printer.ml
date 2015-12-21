@@ -38,6 +38,11 @@ let sprint_exp ?(mode=PrintText) e =
   let sprint_type = sprint_type ~mode in
   let rec sprint_exp = function
     | Var (x) -> x
+    | Cst (c) -> begin
+      match c with
+      | CstBool (b) -> string_of_bool b
+      | CstInt (i) -> string_of_int i
+      end
     | Fun (b, x, t, e) ->
         sprintf "λ^{%s}(%s:%s).%s" (sprint_type b) x (sprint_type t) (sprint_exp e)
     | App (e1, e2) ->

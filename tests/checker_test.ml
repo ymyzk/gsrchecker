@@ -54,6 +54,20 @@ let test_check_suite () =
         (Type_error "'x' is not found in the environment")
         (fun () -> check env x b)
   end;
+  "GTConst bool">:: begin
+    fun test_ctxt ->
+      let env = Environment.empty in
+      let c = Cst (CstInt 123) in
+      let b = tyint in
+      assert_equal (tyint, tyint) @@ check env c b
+  end;
+  "GTConst int">:: begin
+    fun test_ctxt ->
+      let env = Environment.empty in
+      let c = Cst (CstBool false) in
+      let b = tyint in
+      assert_equal (tyint, tybool) @@ check env c b
+  end;
   "GTFun int/bool->int/bool">:: begin
     fun test_ctxt ->
       let env = Environment.empty in

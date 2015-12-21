@@ -33,6 +33,12 @@ let cases = [
   end;
   begin
     fun () ->
+      (* 123: int *)
+      let env = Environment.empty in
+      check_and_print env (Cst (CstInt 123)) tyint
+  end;
+  begin
+    fun () ->
       (* <x>^int *)
       let env = Environment.singleton "x" (TyBase TyInt) in
       let e = Rst (Var "x", tyint) in

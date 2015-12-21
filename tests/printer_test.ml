@@ -30,6 +30,8 @@ let test_sprint_type_text =
 let test_sprint_exp_text =
   let check_list = [
     Var "x", "x";
+    Cst (CstBool true), "true";
+    Cst (CstInt 1221), "1221";
     App (Var "f", Var "x"), "f x";
     Fun (tybool, "x", tyint, Var "x"), "λ^{bool}(x:int).x";
     Sft ("k", tyint, App (Var "k", Var "x")), "S(k:int).k x";
