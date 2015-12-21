@@ -17,7 +17,7 @@ let sprint_type ?(mode=PrintText) ty =
         sprintf "(%s/%s->%s/%s)"
           (sprint_type w) (sprint_type x)
           (sprint_type y) (sprint_type z)
-    | TyDyn -> "?"
+    | TyDyn -> "*"
   in
   match ty with
   | TyFun (w, x, y, z) ->
