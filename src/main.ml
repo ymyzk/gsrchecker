@@ -89,6 +89,18 @@ let cases = [
       let e = App (Var "f", Var "x") in
       check_and_print env e tyint
   end;
+  begin
+    fun () ->
+      let env = Environment.empty in
+      let e = App (Fun (TyDyn, "x", TyDyn, Var "x"), Cst (CstInt 123)) in
+      check_and_print env e TyDyn
+  end;
+  begin
+    fun () ->
+      let env = Environment.empty in
+      let e = App (Fun (TyDyn, "y", TyDyn, Var "y"), Fun (TyDyn, "x", TyDyn, Var "x")) in
+      check_and_print env e TyDyn
+  end
 ]
 
 let () = List.iter (fun case -> case ()) cases

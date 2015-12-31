@@ -126,12 +126,20 @@ let test_check_suite () =
         (Type_error "inconsistent")
         (fun () -> check env e tybool)
   end;
-  "GTShift invalid continuation type">:: begin
+  "GTShift invalid continuation type (not function)">:: begin
     fun test_ctxt ->
       let env = Environment.singleton "x" tyint in
       let e = Sft ("k", tyint, Var "x") in
       assert_raises
-        (Type_error "invalid expression")
+        (Type_error "shift error: the captured continuation type must be a function type")
+        (fun () -> check env e tyint)
+  end;
+  "GTShift invalid continuation type (answer types do not match)">:: begin
+    fun test_ctxt ->
+      let env = Environment.singleton "x" tyint in
+      let e = Sft ("k", TyFun (tyint, tyint, tyint, tybool), Var "x") in
+      assert_raises
+        (Type_error "shift error: answer types of the captured continuation must be same")
         (fun () -> check env e tyint)
   end;
   "GTReset">:: begin

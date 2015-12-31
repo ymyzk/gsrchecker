@@ -94,14 +94,17 @@ let check ?(mode=CheckSilent) env e b =
           end
         else
           raise @@ Type_error "shift error"
+    | Sft (_, TyFun (_, d, _, d'), _) when d <> d' ->
+        raise @@ Type_error "shift error: answer types of the captured continuation must be same"
+    | Sft (_, _, _) ->
+        raise @@ Type_error "shift error: the captured continuation type must be a function type"
     | Rst (re, t) ->
         let g', g = check env re t in
         if check_consistency g g' then
           let a = b in
           print env a e t b "GTReset";
-          (b, t)
+          (a, t)
         else
           raise @@ Type_error "reset error"
-    | _ -> raise @@ Type_error "invalid expression"
   in
   check env e b
