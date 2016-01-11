@@ -8,6 +8,12 @@ type check_mode =
   | CheckSilent
   | CheckText
 
+(* ty -> ty *)
+let match_function t = match t with
+| TyFun (_) -> t
+| TyDyn -> TyFun (TyDyn, TyDyn, TyDyn, TyDyn)
+| _ -> raise (Type_error "cannot match function")
+
 (* ty -> ty -> bool *)
 let rec check_consistency s t = match s, t with
 | (s, t) when s = t -> true (* TCRefl *)
@@ -60,44 +66,41 @@ let check ?(mode=CheckSilent) env e b =
         print env a e t b "GTFun";
         (a, t)
     | App (e1, e2) ->
-        let g, ft = check env e1 b in
+        let g, s = check env e1 b in
+        let fb', ft1' = check env e2 g in
         begin
-          match ft with
-          | TyDyn -> begin
-            let _ = check env e2 g in
-            let a = TyDyn in
-            let t = TyDyn in
-            print env a e t b "GTApp1";
-            (a, t)
-          end
-          | TyFun (ft1, fa, ft2, fb) ->
-              let b', t1' = check env e2 g in
-              begin
-                match (check_consistency ft1 t1', check_consistency fb b') with
-                | (true, true) -> begin
+          match match_function s with
+          | TyFun (ft1, fa, ft2, fb) -> begin
+              match (check_consistency ft1 ft1', check_consistency fb fb') with
+              | (true, true) -> begin
                   let a = fa in
                   let t = ft2 in
-                  print env a e t b "GTApp2";
+                  print env a e t b "GTApp";
                   (a, t)
                 end
-                | _ -> raise @@ Type_error "inconsistent"
-              end
-          | _ -> raise @@ Type_error "invalid application"
+              | _ -> raise @@ Type_error "inconsistent"
+            end
+          | _ -> raise @@ Type_error "unexpected"
         end
-    | Sft (k, TyFun (t, d, a, d'), se) when d = d' ->
-        let env' = Environment.add k (TyFun (t, d, a, d)) env in
-        let g', g = check env' se b in
-        if check_consistency g g' then
-          begin
-            print env a e t b "GTShift";
-            (a, t)
+    | Sft (k, s, e') ->
+        let env' = Environment.add k s env in
+        let g', g = check env' e' b in
+        begin
+          match match_function s with
+          | TyFun (t, d, a, d') when d = d' -> begin
+            if check_consistency g g' then
+              begin
+                print env a e t b "GTShift";
+                (a, t)
+              end
+            else
+              raise @@ Type_error "shift error"
           end
-        else
-          raise @@ Type_error "shift error"
-    | Sft (_, TyFun (_, d, _, d'), _) when d <> d' ->
-        raise @@ Type_error "shift error: answer types of the captured continuation must be same"
-    | Sft (_, _, _) ->
-        raise @@ Type_error "shift error: the captured continuation type must be a function type"
+          | TyFun (_) ->
+              raise @@ Type_error "shift error: answer types of the captured continuation must be same"
+          | _ ->
+              raise @@ Type_error "shift error: the captured continuation type must be a function type or a dynamic type"
+          end
     | Rst (re, t) ->
         let g', g = check env re t in
         if check_consistency g g' then

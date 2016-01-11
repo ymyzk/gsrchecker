@@ -6,6 +6,27 @@ open Printer
 open Syntax
 open Typing
 
+let test_match_function =
+  let tybool = TyBase TyBool in
+  let tyint = TyBase TyInt in
+  let f0 = TyFun (TyDyn, TyDyn, TyDyn, TyDyn) in
+  let f1 = TyFun (tyint, tybool, tyint, tybool) in
+  let check_list = [
+    TyDyn, f0;
+    f0, f0;
+    f1, f1;
+  ] in
+  List.map
+   (fun (s, t) ->
+      let title =
+        "fun(" ^
+        (sprint_type s) ^
+        ")=" ^
+        (sprint_type t)
+      in
+      title >:: (fun test_ctxt -> assert_equal t @@ match_function s))
+    check_list
+
 let test_check_consistency =
   let tybool = TyBase TyBool in
   let tyint = TyBase TyInt in
@@ -90,7 +111,7 @@ let test_check_suite () =
       let env = Environment.add "y" tyint env in
       let e = App (Var "x", Var "y") in
       assert_raises
-        (Type_error "invalid application")
+        (Type_error "cannot match function")
         (fun () -> check env e tybool)
   end;
   "GTApp1">:: begin
@@ -131,7 +152,9 @@ let test_check_suite () =
       let env = Environment.singleton "x" tyint in
       let e = Sft ("k", tyint, Var "x") in
       assert_raises
-        (Type_error "shift error: the captured continuation type must be a function type")
+        (Type_error "cannot match function")
+        (* More better message *)
+        (* (Type_error "shift error: the captured continuation type must be a function type") *)
         (fun () -> check env e tyint)
   end;
   "GTShift invalid continuation type (answer types do not match)">:: begin
@@ -153,6 +176,7 @@ let test_check_suite () =
 ]
 
 let suite = [
+  "test_match_function">::: test_match_function;
   "test_check_consistency">::: test_check_consistency;
   "test_check">::: test_check_suite ();
 ]
